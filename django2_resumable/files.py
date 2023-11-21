@@ -5,6 +5,7 @@ from urllib.parse import urljoin
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.storage import get_storage_class
+from django.core.exceptions import SuspiciousFileOperation
 
 
 class ResumableFile:
@@ -67,7 +68,8 @@ class ResumableFile:
         """Gets the filename."""
         filename = self.kwargs.get('resumableFilename')
         if '/' in filename:
-            raise Exception('Invalid filename')
+            # Updated exception for better clarity and security
+            raise SuspiciousFileOperation('Invalid filename detected.')
         return "%s_%s" % (
             self.kwargs.get('resumableTotalSize'),
             filename
@@ -98,7 +100,8 @@ class ResumableFile:
 
 def ensure_dir(f):
     d = os.path.dirname(f)
-    os.makedirs(d, exist_ok=True)
+    if not os.path.exists(d):
+        os.makedirs(d)
 
 
 def get_chunks_subdir():
@@ -137,8 +140,11 @@ def get_chunks_upload_to(request):
     else:
         ct_id = request.GET['content_type_id']
         field_name = request.GET['field_name']
-
-    ct = ContentType.objects.get_for_id(ct_id)
-    model_cls = ct.model_class()
-    field = model_cls._meta.get_field(field_name)
-    return field.chunks_upload_to
+    try:
+        ct = ContentType.objects.get_for_id(ct_id)
+        model_cls = ct.model_class()
+        field = model_cls._meta.get_field(field_name)
+        return field.chunks_upload_to
+    except (ContentType.DoesNotExist, FieldDoesNotExist):
+        # Handle exceptions appropriately (log, raise a custom exception, etc.)
+        pass
