@@ -5,12 +5,12 @@ from django.forms import FileInput, CheckboxInput, forms
 from django.template import loader
 from django.templatetags.static import static
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext_lazy
+from django.utils.translation import gettext_lazy as _
 
 
 class ResumableWidget(FileInput):
     template_name = 'django2_resumable/file_input.html'
-    clear_checkbox_label = ugettext_lazy('Clear')
+    clear_checkbox_label = _('Clear')
 
     def render(self, name, value, attrs=None, **kwargs):
 
@@ -61,4 +61,4 @@ class ResumableWidget(FileInput):
     @property
     def media(self):
         js = ["resumable.js"]
-        return forms.Media(js=[static("django2_resumable/js/%s" % path) for path in js])
+        return forms.Media(js=[static("django2_resumable/js/%s" % path) for path in js]) 
