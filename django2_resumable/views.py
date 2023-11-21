@@ -1,10 +1,10 @@
 from django.http import HttpResponse
 from .files import ResumableFile, get_storage, get_chunks_upload_to
 
-
 def resumable_upload(request):
     upload_to = get_chunks_upload_to(request)
     storage = get_storage(upload_to)
+
     if request.method == 'POST':
         chunk = request.FILES.get('file')
         r = ResumableFile(storage, request.POST)
@@ -15,6 +15,7 @@ def resumable_upload(request):
             r.delete_chunks()
             return HttpResponse(storage.url(actual_filename), status=201)
         return HttpResponse('chunk uploaded')
+
     elif request.method == 'GET':
         r = ResumableFile(storage, request.GET)
         if not r.chunk_exists:
