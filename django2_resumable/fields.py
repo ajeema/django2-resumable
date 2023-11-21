@@ -1,4 +1,4 @@
-from django.db.models import Field, FileField
+from django.db.models import FileField
 from django.core.files.move import file_move_safe
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -8,13 +8,11 @@ import urllib
 from .forms import FormResumableFileField
 from .widgets import ResumableWidget
 
-
 class ResumableFileField(FileField):
     def __init__(self, verbose_name=None, name=None, upload_to='',
                  chunks_upload_to='', **kwargs):
         self.chunks_upload_to = chunks_upload_to
-        super(ResumableFileField, self).__init__(verbose_name, name, upload_to,
-                                                 **kwargs)
+        super().__init__(verbose_name, name, upload_to, **kwargs)  # Updated super call
 
     def pre_save(self, model_instance, add):
 
@@ -52,11 +50,8 @@ class ResumableFileField(FileField):
         return file
 
     def _safe_media_root(self):
-        if not settings.MEDIA_ROOT.endswith(path.sep):
-            media_root = settings.MEDIA_ROOT + path.sep
-        else:
-            media_root = settings.MEDIA_ROOT
-        return media_root
+        return settings.MEDIA_ROOT.rstrip(path.sep) + path.sep
+
 
     def formfield(self, **kwargs):
         content_type_id = ContentType.objects.get_for_model(self.model).id
@@ -67,4 +62,4 @@ class ResumableFileField(FileField):
                 'field_name': self.name})
         }
         kwargs.update(defaults)
-        return super(ResumableFileField, self).formfield(**kwargs)
+        return super().formfield(**kwargs)
